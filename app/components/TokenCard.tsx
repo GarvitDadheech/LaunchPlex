@@ -1,128 +1,116 @@
-"use client"
+"use client";
 import { useState } from "react";
-import InputBox from "./InputBox";
-import { Connection, Keypair, SystemProgram, Transaction, clusterApiUrl } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { ExtensionType, LENGTH_SIZE, TOKEN_2022_PROGRAM_ID, TYPE_SIZE, createInitializeMetadataPointerInstruction, createInitializeMintInstruction, getMintLen } from "@solana/spl-token";
-import { createInitializeInstruction, pack } from "@solana/spl-token-metadata";
+import { Loader2 } from "lucide-react";
+import InputBox from "./InputBox";
 
 const TokenCard = () => {
-    const { connection } = useConnection();
-    const wallet = useWallet();
-    const [tokenName, setTokenName] = useState("");
-    const [tokenSymbol, setTokenSymbol] = useState("");
-    const [decimal, setDecimal] = useState("");
-    const [tokenImage, setTokenImage] = useState("");
-    
-    const createToken = async () => {
 
-        // generate account for token
-        const mintKeypair = Keypair.generate();
+  const [tokenName, setTokenName] = useState("");
+  const [tokenSymbol, setTokenSymbol] = useState("");
+  const [decimal, setDecimal] = useState("");
+  const [tokenImage, setTokenImage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-        //define metadata
-        const metadata = {
-            mint: mintKeypair.publicKey,
-            name: 'KIRA',
-            symbol: 'KIR    ',
-            uri: 'https://cdn.100xdevs.com/metadata.json',
-            additionalMetadata: [],
-        };
-
-        // we need to calculate space of metadata and the mintAccount to be stored on bc
-        const mintLen = getMintLen([ExtensionType.MetadataPointer]);
-        const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
-
-        // calculating lamports
-        const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataLen);
-
-        //now add the transaction and get it signed by the user
-        const transaction = new Transaction().add(
-            SystemProgram.createAccount({
-                fromPubkey: wallet.publicKey!,
-                newAccountPubkey:mintKeypair.publicKey,
-                space: mintLen,
-                lamports,
-                programId: TOKEN_2022_PROGRAM_ID,
-            }),
-            createInitializeMetadataPointerInstruction(mintKeypair.publicKey,wallet.publicKey,mintKeypair.publicKey,TOKEN_2022_PROGRAM_ID),
-            createInitializeMintInstruction(mintKeypair.publicKey,9,wallet.publicKey!,null,TOKEN_2022_PROGRAM_ID),
-            createInitializeInstruction({
-                programId: TOKEN_2022_PROGRAM_ID,
-                mint: mintKeypair.publicKey,
-                metadata: mintKeypair.publicKey,
-                name: metadata.name,
-                symbol: metadata.symbol,
-                uri: metadata.uri,
-                mintAuthority: wallet.publicKey!,
-                updateAuthority: wallet.publicKey!,
-            })
-        )
-
-        transaction.feePayer = wallet.publicKey!;
-
-        // add the recent blockhash so that miners will accept this transactions otherwise older txns are not accepted in solana unlike ethereum
-        transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-        //partially sign as user will fully sign the transaction.
-        transaction.partialSign(mintKeypair);
-
-        await wallet.sendTransaction(transaction, connection);
-        
+  const createToken = async () => {
+    setIsLoading(true);
+    try {
+      console.log("Creating token with current values:", {
+        tokenName,
+        tokenSymbol,
+        decimal,
+        tokenImage,
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    const previewToken = () => {
-        console.log("Previewing token with current values:", {
-          tokenName,
-          tokenSymbol,
-          decimal,
-          tokenImage
-        });
-    };
+  const previewToken = () => {
+    console.log("Previewing token with current values:", {
+      tokenName,
+      tokenSymbol,
+      decimal,
+      tokenImage,
+    });
+  };
 
-    return (
-        <div className="flex flex-col gap-y-6 p-4">
-            <div className="flex flex-col gap-y-4">
-            <InputBox
+  return (
+    <div className="flex items-center justify-center px-8 py-8 h-full">
+      <div className="w-[50%] transform transition-all duration-500 ease-in-out">
+        <div className=" bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
+          <div className="p-6 sm:p-8">
+            <div className="mb-8">
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-200 to-white bg-clip-text text-transparent">
+                Create Your Sol Token
+              </h2>
+
+              <p className="mt-2 text-gray-200">
+                Fill in the details below to launch your own Solana token
+              </p>
+            </div>
+            <div className="space-y-6">
+              <InputBox
                 heading="Token Name"
                 placeholder="Enter the name of your token"
                 value={tokenName}
                 onChange={setTokenName}
-            />
-            <InputBox
+              />
+              <InputBox
                 heading="Token Symbol"
                 placeholder="Enter the symbol of your token"
                 value={tokenSymbol}
                 onChange={setTokenSymbol}
-            />
-            <InputBox
+              />
+              <InputBox
                 heading="Decimal"
                 placeholder="Enter the decimals you want in the token"
                 value={decimal}
                 onChange={setDecimal}
-            />
-            <InputBox
+                type="number"
+              />
+              <InputBox
                 heading="Token Image"
-                placeholder="Enter the uri link of token image"
+                placeholder="Enter the URI link of token image"
                 value={tokenImage}
                 onChange={setTokenImage}
-            />
+              />
+              <div className="flex gap-4 pt-4">
+                <button
+                  onClick={previewToken}
+                  className="flex-1 px-4 py-3 rounded-lg 
+                                            bg-gray-800 text-gray-300
+                                            transition-all duration-300
+                                            transform hover:-translate-y-0.5 border border-gray-700 font-semibold hover:shadow-purple-500/25"
+                >
+                  Preview Token
+                </button>
+                <button
+                  onClick={createToken}
+                  disabled={isLoading}
+                  className="flex-1 px-4 py-3 rounded-lg
+                                             bg-gradient-to-r from-purple-500 to-blue-500
+                                             text-white shadow-lg 
+                                             hover:shadow-purple-500/25 disabled:opacity-70
+                                             transform hover:-translate-y-0.5 transition-all 
+                                             duration-300 disabled:hover:transform-none
+                                             flex items-center justify-center font-semibold"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Launch Token"
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="flex gap-3">
-            <button
-                onClick={previewToken}
-                className="rounded-md bg-gray-100 px-4 py-2 hover:bg-gray-200"
-            >
-                Preview Token
-            </button>
-            <button
-                onClick={createToken}
-                className="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-            >
-                Launch Token
-            </button>
-            </div>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
-    
+
 export default TokenCard;
