@@ -144,7 +144,7 @@ const TokenCard = () => {
             mintKeypair.publicKey,
             associatedToken,
             wallet.publicKey!,
-            Number(initialSupply),
+            Number(initialSupply) * Math.pow(10, Number(decimal)),
             [],
             TOKEN_2022_PROGRAM_ID
           )
