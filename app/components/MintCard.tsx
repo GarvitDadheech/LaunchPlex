@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Loader2 } from "lucide-react";
 import InputBox from "./InputBox";
 
@@ -61,7 +60,7 @@ const MintCard = () => {
                 <button
                   onClick={mintToken}
                   disabled={isLoading}
-                  className=" px-4 py-3 rounded-lg w-32
+                  className=" px-4 py-3 rounded-lg w-[30%]
                                              bg-gradient-to-r from-purple-500 to-blue-500
                                              text-white shadow-lg 
                                              hover:shadow-purple-500/25 disabled:opacity-70

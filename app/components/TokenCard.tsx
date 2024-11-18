@@ -1,23 +1,171 @@
-"use client";
-import { useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Loader2 } from "lucide-react";
-import InputBox from "./InputBox";
+    "use client";
+    import { useState } from "react";
+    import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
+    import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+    import {
+    TOKEN_2022_PROGRAM_ID,
+    getMintLen,
+    createInitializeMetadataPointerInstruction,
+    createInitializeMintInstruction,
+    TYPE_SIZE,
+    LENGTH_SIZE,
+    ExtensionType,
+    AuthorityType,
+    createSetAuthorityInstruction,
+    getAssociatedTokenAddressSync,
+    createAssociatedTokenAccountInstruction,
+    createMintToInstruction,
+    } from "@solana/spl-token";
+    import { createInitializeInstruction, pack } from "@solana/spl-token-metadata";
+    import { Loader2 } from "lucide-react";
+    import InputBox from "./InputBox";
 
-const TokenCard = () => {
-  const [tokenName, setTokenName] = useState("");
-  const [tokenSymbol, setTokenSymbol] = useState("");
-  const [decimal, setDecimal] = useState("");
-  const [initialSupply, setInitialSupply] = useState("");
-  const [tokenImage, setTokenImage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [revokeMintAuthority, setRevokeMintAuthority] = useState(false);
-  const [revokeFreezeAuthority, setRevokeFreezeAuthority] = useState(false);
+    const TokenCard = () => {
+    const { connection } = useConnection();
+    const wallet = useWallet();
 
-  const createToken = async () => {
-    setIsLoading(true);
-    try {
-      console.log("Creating token with current values:", {
+    const [tokenName, setTokenName] = useState("");
+    const [tokenSymbol, setTokenSymbol] = useState("");
+    const [decimal, setDecimal] = useState("");
+    const [initialSupply, setInitialSupply] = useState("");
+    const [tokenImage, setTokenImage] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [revokeMintAuthority, setRevokeMintAuthority] = useState(false);
+    const [revokeFreezeAuthority, setRevokeFreezeAuthority] = useState(false);
+
+    const createToken = async () => {
+        setIsLoading(true);
+        try {
+            if (!tokenName || !tokenSymbol || !decimal || !tokenImage) {
+                throw new Error("Please fill in all required fields");
+            }
+    
+            const mintKeypair = Keypair.generate();
+            const metadata = {
+                mint: mintKeypair.publicKey,
+                name: tokenName.trim(),
+                symbol: tokenSymbol.trim(),
+                uri: "https://cdn.100xdevs.com/metadata.json",
+                additionalMetadata: [],
+            };
+    
+            const mintLen = getMintLen([ExtensionType.MetadataPointer]);
+            const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
+    
+            const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataLen);
+    
+            // Transaction 1: Create Mint Account and Initialize Mint
+            const transaction1 = new Transaction().add(
+                SystemProgram.createAccount({
+                    fromPubkey: wallet.publicKey!,
+                    newAccountPubkey: mintKeypair.publicKey,
+                    space: mintLen,
+                    lamports,
+                    programId: TOKEN_2022_PROGRAM_ID,
+                }),
+                createInitializeMetadataPointerInstruction(
+                    mintKeypair.publicKey,
+                    wallet.publicKey,
+                    mintKeypair.publicKey,
+                    TOKEN_2022_PROGRAM_ID
+                ),
+                createInitializeMintInstruction(
+                    mintKeypair.publicKey,
+                    Number(decimal),
+                    wallet.publicKey!,
+                    revokeFreezeAuthority ? null : wallet.publicKey,
+                    TOKEN_2022_PROGRAM_ID
+                ),
+                createInitializeInstruction({
+                    programId: TOKEN_2022_PROGRAM_ID,
+                    mint: mintKeypair.publicKey,
+                    metadata: mintKeypair.publicKey,
+                    name: metadata.name,
+                    symbol: metadata.symbol,
+                    uri: metadata.uri,
+                    mintAuthority: wallet.publicKey!,
+                    updateAuthority: wallet.publicKey!,
+                })
+            );
+    
+            transaction1.feePayer = wallet.publicKey!;
+            transaction1.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+            transaction1.partialSign(mintKeypair);
+    
+            const signature1 = await wallet.sendTransaction(transaction1, connection);
+            await connection.confirmTransaction(signature1, "confirmed");
+            console.log(`Token mint created at ${mintKeypair.publicKey.toBase58()}`);
+    
+            // Transaction 2: Create Associated Token Account
+            const associatedToken = getAssociatedTokenAddressSync(
+                mintKeypair.publicKey,
+                wallet.publicKey!,
+                false,
+                TOKEN_2022_PROGRAM_ID
+            );
+            console.log(`Associated Token Account: ${associatedToken.toBase58()}`);
+    
+            const transaction2 = new Transaction().add(
+                createAssociatedTokenAccountInstruction(
+                    wallet.publicKey!,
+                    associatedToken,
+                    wallet.publicKey!,
+                    mintKeypair.publicKey,
+                    TOKEN_2022_PROGRAM_ID
+                )
+            );
+    
+            const signature2 = await wallet.sendTransaction(transaction2, connection);
+            await connection.confirmTransaction(signature2, "confirmed");
+            console.log("Associated Token Account created.");
+    
+            // Transaction 3: Mint Initial Supply
+            if (initialSupply && Number(initialSupply) > 0) {
+                const transaction3 = new Transaction().add(
+                    createMintToInstruction(
+                        mintKeypair.publicKey,
+                        associatedToken,
+                        wallet.publicKey!,
+                        Number(initialSupply),
+                        [],
+                        TOKEN_2022_PROGRAM_ID
+                    )
+                );
+    
+                const signature3 = await wallet.sendTransaction(transaction3, connection);
+                await connection.confirmTransaction(signature3, "confirmed");
+                console.log(`Minted ${initialSupply} tokens to ${associatedToken.toBase58()}`);
+            }
+    
+            // Transaction 4: Revoke Mint Authority (Set Authority to None)
+            if (revokeMintAuthority) {
+                const transaction4 = new Transaction().add(
+                    createSetAuthorityInstruction(
+                        mintKeypair.publicKey, // Mint account
+                        wallet.publicKey!,      // Current mint authority
+                        AuthorityType.MintTokens, // Authority type: Minting
+                        null,                  // New authority (null = disable minting)
+                        [],                    // Signers
+                        TOKEN_2022_PROGRAM_ID
+                    )
+                );
+    
+                const signature4 = await wallet.sendTransaction(transaction4, connection);
+                await connection.confirmTransaction(signature4, "confirmed");
+                console.log("Minting capability has been disabled.");
+            }
+    
+        } catch (error) {
+            console.error("Error creating token:", error);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+
+    const previewToken = () => {
+        console.log("Previewing token with current values:", {
         tokenName,
         tokenSymbol,
         decimal,
@@ -25,157 +173,120 @@ const TokenCard = () => {
         tokenImage,
         revokeMintAuthority,
         revokeFreezeAuthority,
-      });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        });
+    };
 
-  const previewToken = () => {
-    console.log("Previewing token with current values:", {
-      tokenName,
-      tokenSymbol,
-      decimal,
-      initialSupply,
-      tokenImage,
-      revokeMintAuthority,
-      revokeFreezeAuthority,
-    });
-  };
-
-  return (
-    <div className="flex items-center justify-center px-8 py-8 h-full">
-      <div className="w-[50%] transform transition-all duration-500 ease-in-out">
-        <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
-          <div className="p-6 sm:p-8">
-            <div className="mb-8">
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-200 to-white bg-clip-text text-transparent">
-                Create Your Sol Token
-              </h2>
-              <p className="mt-2 text-gray-200">
-                Fill in the details below to launch your own Solana token
-              </p>
-            </div>
-            <div className="space-y-6">
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <InputBox
-                    heading="Token Name"
-                    placeholder="Enter the name of your token"
-                    value={tokenName}
-                    onChange={setTokenName}
-                  />
+    return (
+        <div className="flex items-center justify-center px-8 py-8 h-full">
+        <div className="w-[50%] transform transition-all duration-500 ease-in-out">
+            <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
+            <div className="p-6 sm:p-8">
+                <div className="mb-8">
+                <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-200 to-white bg-clip-text text-transparent">
+                    Create Your Sol Token
+                </h2>
+                <p className="mt-2 text-gray-200">
+                    Fill in the details below to launch your own Solana token
+                </p>
                 </div>
-                <div className="flex-1">
-                  <InputBox
-                    heading="Token Symbol"
-                    placeholder="Enter the symbol of your token"
-                    value={tokenSymbol}
-                    onChange={setTokenSymbol}
-                  />
-                </div>
-              </div>
-              <div className="flex space-x-4">
-                <div className="flex-1">
-                  <InputBox
-                    heading="Decimal"
-                    placeholder="Enter the decimals you want in the token"
-                    value={decimal}
-                    onChange={setDecimal}
-                    type="number"
-                  />
-                </div>
-                <div className="flex-1">
-                  <InputBox
-                    heading="Initial Supply"
-                    placeholder="Enter the initial supply of your token"
-                    value={initialSupply}
-                    onChange={setInitialSupply}
-                    type="number"
-                  />
-                </div>
-              </div>
-              <InputBox
-                heading="Token Image"
-                placeholder="Enter the URI link of token image"
-                value={tokenImage}
-                onChange={setTokenImage}
-              />
-              <div className="flex space-x-4">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center space-x-4">
-                    <h3 className="font-medium text-white">Revoke Mint Authority</h3>
-                    <button
-                      onClick={() => setRevokeMintAuthority(!revokeMintAuthority)}
-                      className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        revokeMintAuthority ? 'bg-purple-500' : 'bg-gray-600'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          revokeMintAuthority ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
+                <div className="space-y-6">
+                <div className="flex space-x-4">
+                    <div className="flex-1">
+                    <InputBox
+                        heading="Token Name"
+                        placeholder="Enter the name of your token"
+                        value={tokenName}
+                        onChange={setTokenName}
+                    />
                     </div>
-                    <p className="text-sm text-gray-300">Prevent additional token supply</p>
-                  
-                </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center space-x-4">
-                    <h3 className="font-medium text-white">Revoke Freeze Authority</h3>
-                    <button
-                      onClick={() => setRevokeFreezeAuthority(!revokeFreezeAuthority)}
-                      className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        revokeFreezeAuthority ? 'bg-purple-500' : 'bg-gray-600'
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          revokeFreezeAuthority ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
+                    <div className="flex-1">
+                    <InputBox
+                        heading="Token Symbol"
+                        placeholder="Enter the symbol of your token"
+                        value={tokenSymbol}
+                        onChange={setTokenSymbol}
+                    />
                     </div>
-                    <p className="text-sm text-gray-300">Prevent token freezing</p>
                 </div>
-              </div>
-              <div className="flex gap-4 pt-4">
-                <button
-                  onClick={previewToken}
-                  className="flex-1 px-4 py-3 rounded-lg 
-                            bg-gray-800 text-gray-300
-                            transition-all duration-300
-                            transform hover:-translate-y-0.5 border border-gray-700 font-semibold hover:shadow-purple-500/25"
-                >
-                  Preview Token
-                </button>
-                <button
-                  onClick={createToken}
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-3 rounded-lg
-                             bg-gradient-to-r from-purple-500 to-blue-500
-                             text-white shadow-lg 
-                             hover:shadow-purple-500/25 disabled:opacity-70
-                             transform hover:-translate-y-0.5 transition-all 
-                             duration-300 disabled:hover:transform-none
-                             flex items-center justify-center font-semibold"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    "Launch Token"
-                  )}
-                </button>
-              </div>
+                <div className="flex space-x-4">
+                    <div className="flex-1">
+                    <InputBox
+                        heading="Decimal"
+                        placeholder="Enter the decimals you want in the token"
+                        value={decimal}
+                        onChange={setDecimal}
+                        type="number"
+                    />
+                    </div>
+                    <div className="flex-1">
+                    <InputBox
+                        heading="Initial Supply"
+                        placeholder="Enter the initial supply of your token"
+                        value={initialSupply}
+                        onChange={setInitialSupply}
+                        type="number"
+                    />
+                    </div>
+                </div>
+                <InputBox
+                    heading="Token Image"
+                    placeholder="Enter the URI link of token image"
+                    value={tokenImage}
+                    onChange={setTokenImage}
+                />
+                <div className="flex space-x-4">
+                    <div className="flex-1 space-y-2">
+                    <div className="flex items-center space-x-4">
+                        <h3 className="font-medium text-white">
+                        Revoke Mint Authority
+                        </h3>
+                        <button
+                        onClick={() =>
+                            setRevokeMintAuthority(!revokeMintAuthority)
+                        }
+                        className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            revokeMintAuthority ? "bg-purple-500" : "bg-gray-600"
+                        }`}
+                        >
+                        <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            revokeMintAuthority
+                                ? "translate-x-5"
+                                : "translate-x-0"
+                            }`}
+                        />
+                        </button>
+                    </div>
+                    <p className="text-md text-gray-200">
+                        Prevent additional token supply to increase investors trust.
+                    </p>
+                    </div>
+                </div>
+                <div className="flex gap-4 pt-4">
+                    <button
+                    onClick={createToken}
+                    disabled={isLoading}
+                    className=" px-4 py-3 rounded-lg w-[30%]
+                                bg-gradient-to-r from-purple-500 to-blue-500
+                                text-white shadow-lg 
+                                hover:shadow-purple-500/25 disabled:opacity-70
+                                transform hover:-translate-y-0.5 transition-all 
+                                duration-300 disabled:hover:transform-none
+                                flex items-center justify-center font-semibold"
+                    >
+                    {isLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                        "Launch Token"
+                    )}
+                    </button>
+                </div>
+                </div>
             </div>
-          </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
-};
+        </div>
+    );
+    };
 
-export default TokenCard;
+    export default TokenCard;
