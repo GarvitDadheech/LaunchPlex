@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { createMintToInstruction, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
+import { createMintToInstruction, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID,getMint } from "@solana/spl-token";
 import InputBox from "./InputBox";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
@@ -36,13 +36,14 @@ const MintCard = () => {
       if (!accountInfo) {
         throw new Error("Associated token account does not exist. Please create one before minting tokens.");
       }
-
+      const mintInfo = await getMint(connection, mintPublicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
+      const decimal = mintInfo.decimals;
       const transaction = new Transaction().add(
         createMintToInstruction(
           mintPublicKey,
           associatedTokenAccount,
           wallet.publicKey!,
-          amount,
+          amount * Math.pow(10, Number(decimal)),
           [],
           TOKEN_2022_PROGRAM_ID
         )
