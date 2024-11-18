@@ -8,11 +8,13 @@ import { clusterApiUrl } from '@solana/web3.js';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { useMemo, useState } from 'react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import MintCard from "./components/MintCard";
 
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 export default function Home() {
   const [network, setNetwork] = useState<WalletAdapterNetwork>(WalletAdapterNetwork.Devnet);
+  const [currentPage, setCurrentPage] = useState<'create' | 'mint'>('create');
 
   const wallets = useMemo(
     () => [
@@ -36,10 +38,15 @@ export default function Home() {
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
             <div className="relative z-10">
-              <TopBar currentNetwork={network} onNetworkChange={setNetwork} />
-              <main className="container mx-auto px-4 pt-24 pb-12">
-                <TokenCard />
-              </main>
+            <TopBar 
+              currentNetwork={network} 
+              onNetworkChange={setNetwork}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+            <main className="container mx-auto px-4 pt-24 pb-12">
+              {currentPage === 'create' ? <TokenCard /> : <MintCard />}
+            </main>
             </div>
           </WalletModalProvider>
         </WalletProvider>
