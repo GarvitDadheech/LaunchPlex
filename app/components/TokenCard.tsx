@@ -19,6 +19,8 @@
     import { createInitializeInstruction, pack } from "@solana/spl-token-metadata";
     import { Loader2 } from "lucide-react";
     import InputBox from "./InputBox";
+import TokenSuccessModal from "./TokenSuccessModal";
+import TokenErrorModal from "./TokenErrorModal";
 
     const TokenCard = () => {
     const { connection } = useConnection();
@@ -32,6 +34,10 @@
     const [isLoading, setIsLoading] = useState(false);
     const [revokeMintAuthority, setRevokeMintAuthority] = useState(false);
     const [revokeFreezeAuthority, setRevokeFreezeAuthority] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [createdTokenAddress, setCreatedTokenAddress] = useState('');
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const createToken = async () => {
         setIsLoading(true);
@@ -141,11 +147,11 @@
             if (revokeMintAuthority) {
                 const transaction4 = new Transaction().add(
                     createSetAuthorityInstruction(
-                        mintKeypair.publicKey, // Mint account
-                        wallet.publicKey!,      // Current mint authority
-                        AuthorityType.MintTokens, // Authority type: Minting
-                        null,                  // New authority (null = disable minting)
-                        [],                    // Signers
+                        mintKeypair.publicKey, 
+                        wallet.publicKey!,      
+                        AuthorityType.MintTokens, 
+                        null,                  
+                        [],                    
                         TOKEN_2022_PROGRAM_ID
                     )
                 );
@@ -154,29 +160,23 @@
                 await connection.confirmTransaction(signature4, "confirmed");
                 console.log("Minting capability has been disabled.");
             }
+
+            setCreatedTokenAddress(mintKeypair.publicKey.toBase58());
+            setShowSuccessModal(true);
     
         } catch (error) {
             console.error("Error creating token:", error);
-            throw error;
+            setErrorMessage((error as Error).message || "An unexpected error occurred");
+            setShowErrorModal(true);
         } finally {
             setIsLoading(false);
         }
     };
-    
-
-    const previewToken = () => {
-        console.log("Previewing token with current values:", {
-        tokenName,
-        tokenSymbol,
-        decimal,
-        initialSupply,
-        tokenImage,
-        revokeMintAuthority,
-        revokeFreezeAuthority,
-        });
-    };
 
     return (
+        <div className="relative">
+
+       
         <div className="flex items-center justify-center px-8 py-8 h-full">
         <div className="w-[50%] transform transition-all duration-500 ease-in-out">
             <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
@@ -257,8 +257,34 @@
                         />
                         </button>
                     </div>
-                    <p className="text-md text-gray-200">
-                        Prevent additional token supply to increase investors trust.
+                    <p className="text-sm text-gray-200">
+                        Prevent additional token supply
+                    </p>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                    <div className="flex items-center space-x-4">
+                        <h3 className="font-medium text-white">
+                        Revoke Freeze Authority
+                        </h3>
+                        <button
+                        onClick={() =>
+                            setRevokeFreezeAuthority(!revokeFreezeAuthority)
+                        }
+                        className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            revokeFreezeAuthority ? "bg-purple-500" : "bg-gray-600"
+                        }`}
+                        >
+                        <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            revokeFreezeAuthority
+                                ? "translate-x-5"
+                                : "translate-x-0"
+                            }`}
+                        />
+                        </button>
+                    </div>
+                    <p className="text-sm text-gray-200">
+                        Prevent freezing of token accounts
                     </p>
                     </div>
                 </div>
@@ -285,6 +311,19 @@
             </div>
             </div>
         </div>
+        </div>
+        {showSuccessModal && (
+        <TokenSuccessModal
+          mintAddress={createdTokenAddress}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+      {showErrorModal && (
+        <TokenErrorModal 
+          errorMessage={errorMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
         </div>
     );
     };
