@@ -10,7 +10,7 @@ const EmojiSpinner: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [emojis.length]);
 
   return (
     <div className="text-sm sm:text-md font-bold text-white">

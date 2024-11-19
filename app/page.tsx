@@ -15,8 +15,7 @@ import { useMemo, useState } from "react";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import MintCard from "./components/MintCard";
 import BottomBar from "./components/BottomBar";
-
-require("@solana/wallet-adapter-react-ui/styles.css");
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 export default function Home() {
   const [network, setNetwork] = useState<WalletAdapterNetwork>(

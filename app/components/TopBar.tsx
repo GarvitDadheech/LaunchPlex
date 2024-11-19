@@ -107,20 +107,6 @@ const TopBar: FC<TopBarProps> = ({
                     transform: "scale(1)",
                     cursor: "pointer",
                   }}
-                  //@ts-ignore
-                  onMouseOver={(e: any) => {
-                    e.target.style.backgroundColor = "#7c3aed";
-                    e.target.style.boxShadow =
-                      "0 4px 6px rgba(128, 0, 128, 0.25)";
-                    e.target.style.transform = "translateY(-0.125rem)";
-                    e.target.style.filter = "brightness(1.1)";
-                  }}
-                  onMouseOut={(e: any) => {
-                    e.target.style.backgroundColor = "";
-                    e.target.style.boxShadow = "";
-                    e.target.style.transform = "";
-                    e.target.style.filter = "";
-                  }}
                 />
               </div>
             </div>
