@@ -84,7 +84,7 @@ const MintCard = () => {
   };
 
   return (
-    <div className="flex items-start mt-6 justify-center p-4 sm:p-6 md:p-8 min-h-[700px] mb-12">
+    <div className="flex items-start mt-6 justify-center p-4 sm:p-6 md:p-8 min-h-[400px] md:min-h[700px] mb-12">
       <div className="w-full max-w-[90%] md:max-w-[70%] lg:max-w-[50%] transform transition-all duration-500 ease-in-out">
         <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
           <div className="p-4 sm:p-6 md:p-8">

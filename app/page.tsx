@@ -36,19 +36,21 @@ export default function Home() {
   }, [network]);
 
   return (
-    <div className="min-h-screen bg-custom-bg bg-cover bg-center bg-fixed">
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+    <div className="relative min-h-screen w-full bg-custom-bg bg-cover bg-center bg-fixed">
+    <div className="relative w-full min-h-screen flex flex-col">
+      <div className="absolute inset-0 w-full h-full bg-black/10 backdrop-blur-[2px] supports-[backdrop-filter]:backdrop-blur-[2px]" />
+      
       <ConnectionProvider endpoint={endpoint}>
         <WalletProvider wallets={wallets} autoConnect>
           <WalletModalProvider>
-            <div className="relative z-10">
+            <div className="relative z-10 flex flex-col min-h-screen">
               <TopBar
                 currentNetwork={network}
                 onNetworkChange={setNetwork}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
               />
-              <main className="container mx-auto px-4 pt-24">
+              <main className="flex-grow container mx-auto px-4 pt-24">
                 {currentPage === "create" ? <TokenCard /> : <MintCard />}
               </main>
               <BottomBar/>
@@ -57,5 +59,6 @@ export default function Home() {
         </WalletProvider>
       </ConnectionProvider>
     </div>
+  </div>
   );
 }
