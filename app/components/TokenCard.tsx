@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Keypair, SystemProgram, Transaction } from "@solana/web3.js";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import axios from 'axios';
+import axios from "axios";
 import {
   TOKEN_2022_PROGRAM_ID,
   getMintLen,
@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 import InputBox from "./InputBox";
 import TokenSuccessModal from "./TokenSuccessModal";
 import TokenErrorModal from "./TokenErrorModal";
+import EmojiSpinner from "./EmojiSpinner";
 
 const TokenCard = () => {
   const { connection } = useConnection();
@@ -37,26 +38,35 @@ const TokenCard = () => {
   const [revokeMintAuthority, setRevokeMintAuthority] = useState(false);
   const [revokeFreezeAuthority, setRevokeFreezeAuthority] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [createdTokenAddress, setCreatedTokenAddress] = useState('');
+  const [createdTokenAddress, setCreatedTokenAddress] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const createToken = async () => {
     setIsLoading(true);
     try {
-      if (!tokenName || !tokenSymbol || !decimal || !tokenImage || !tokenDescription) {
+      if (
+        !tokenName ||
+        !tokenSymbol ||
+        !decimal ||
+        !tokenImage ||
+        !tokenDescription
+      ) {
         throw new Error("Please fill in all required fields");
       }
 
-      const metadataResponse = await axios.post('https://dummyjson.com/c/generate', {
-        json: {
-          name: tokenName.trim(),
-          symbol: tokenSymbol.trim(),
-          description: tokenDescription.trim(),
-          image: tokenImage,
-        },
-        method: 'GET',
-      });
+      const metadataResponse = await axios.post(
+        "https://dummyjson.com/c/generate",
+        {
+          json: {
+            name: tokenName.trim(),
+            symbol: tokenSymbol.trim(),
+            description: tokenDescription.trim(),
+            image: tokenImage,
+          },
+          method: "GET",
+        }
+      );
 
       const metadataUrl = metadataResponse.data.url;
       console.log(metadataResponse.data.url);
@@ -72,7 +82,9 @@ const TokenCard = () => {
       const mintLen = getMintLen([ExtensionType.MetadataPointer]);
       const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
 
-      const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataLen);
+      const lamports = await connection.getMinimumBalanceForRentExemption(
+        mintLen + metadataLen
+      );
 
       // Transaction 1: Create Mint Account and Initialize Mint
       const transaction1 = new Transaction().add(
@@ -109,7 +121,9 @@ const TokenCard = () => {
       );
 
       transaction1.feePayer = wallet.publicKey!;
-      transaction1.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+      transaction1.recentBlockhash = (
+        await connection.getLatestBlockhash()
+      ).blockhash;
       transaction1.partialSign(mintKeypair);
 
       const signature1 = await wallet.sendTransaction(transaction1, connection);
@@ -123,7 +137,7 @@ const TokenCard = () => {
         false,
         TOKEN_2022_PROGRAM_ID
       );
-      
+
       const transaction2 = new Transaction().add(
         createAssociatedTokenAccountInstruction(
           wallet.publicKey!,
@@ -150,7 +164,10 @@ const TokenCard = () => {
           )
         );
 
-        const signature3 = await wallet.sendTransaction(transaction3, connection);
+        const signature3 = await wallet.sendTransaction(
+          transaction3,
+          connection
+        );
         await connection.confirmTransaction(signature3, "confirmed");
       }
 
@@ -167,7 +184,10 @@ const TokenCard = () => {
           )
         );
 
-        const signature4 = await wallet.sendTransaction(transaction4, connection);
+        const signature4 = await wallet.sendTransaction(
+          transaction4,
+          connection
+        );
         await connection.confirmTransaction(signature4, "confirmed");
       }
 
@@ -177,10 +197,11 @@ const TokenCard = () => {
       setTokenImage("");
       setTokenDescription("");
       setDecimal("");
-
     } catch (error) {
       console.error("Error creating token:", error);
-      setErrorMessage((error as Error).message || "An unexpected error occurred");
+      setErrorMessage(
+        (error as Error).message || "An unexpected error occurred"
+      );
       setShowErrorModal(true);
     } finally {
       setIsLoading(false);
@@ -188,8 +209,8 @@ const TokenCard = () => {
   };
 
   return (
-    <div className="relative min-h-screen">
-      <div className="flex items-center justify-center px-4 sm:px-6 md:px-8 py-6 h-full">
+    <div className="relative">
+      <div className="flex items-center justify-center px-4 sm:px-6 md:px-8 pt-6 pb-3 h-full">
         <div className="w-full md:w-[80%] lg:w-[70%] xl:w-[50%] transform transition-all duration-500 ease-in-out">
           <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
             <div className="p-4 sm:p-6 md:p-8">
@@ -272,14 +293,18 @@ const TokenCard = () => {
                         Revoke Mint Authority
                       </h3>
                       <button
-                        onClick={() => setRevokeMintAuthority(!revokeMintAuthority)}
+                        onClick={() =>
+                          setRevokeMintAuthority(!revokeMintAuthority)
+                        }
                         className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                           revokeMintAuthority ? "bg-purple-500" : "bg-gray-600"
                         }`}
                       >
                         <span
                           className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                            revokeMintAuthority ? "translate-x-5" : "translate-x-0"
+                            revokeMintAuthority
+                              ? "translate-x-5"
+                              : "translate-x-0"
                           }`}
                         />
                       </button>
@@ -296,14 +321,20 @@ const TokenCard = () => {
                         Revoke Freeze Authority
                       </h3>
                       <button
-                        onClick={() => setRevokeFreezeAuthority(!revokeFreezeAuthority)}
+                        onClick={() =>
+                          setRevokeFreezeAuthority(!revokeFreezeAuthority)
+                        }
                         className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                          revokeFreezeAuthority ? "bg-purple-500" : "bg-gray-600"
+                          revokeFreezeAuthority
+                            ? "bg-purple-500"
+                            : "bg-gray-600"
                         }`}
                       >
                         <span
                           className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                            revokeFreezeAuthority ? "translate-x-5" : "translate-x-0"
+                            revokeFreezeAuthority
+                              ? "translate-x-5"
+                              : "translate-x-0"
                           }`}
                         />
                       </button>
@@ -315,7 +346,7 @@ const TokenCard = () => {
                 </div>
 
                 {/* Launch Button */}
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-4 pt-4 items-center">
                   <button
                     onClick={createToken}
                     disabled={isLoading}
@@ -327,6 +358,7 @@ const TokenCard = () => {
                       "Launch Token"
                     )}
                   </button>
+                  {isLoading && <EmojiSpinner />}
                 </div>
               </div>
             </div>

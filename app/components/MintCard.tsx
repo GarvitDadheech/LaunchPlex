@@ -2,7 +2,12 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { createMintToInstruction, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, getMint } from "@solana/spl-token";
+import {
+  createMintToInstruction,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+  getMint,
+} from "@solana/spl-token";
 import InputBox from "./InputBox";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
@@ -32,11 +37,20 @@ const MintCard = () => {
         false,
         TOKEN_2022_PROGRAM_ID
       );
-      const accountInfo = await connection.getAccountInfo(associatedTokenAccount);
+      const accountInfo = await connection.getAccountInfo(
+        associatedTokenAccount
+      );
       if (!accountInfo) {
-        throw new Error("Associated token account does not exist. Please create one before minting tokens.");
+        throw new Error(
+          "Associated token account does not exist. Please create one before minting tokens."
+        );
       }
-      const mintInfo = await getMint(connection, mintPublicKey, "confirmed", TOKEN_2022_PROGRAM_ID);
+      const mintInfo = await getMint(
+        connection,
+        mintPublicKey,
+        "confirmed",
+        TOKEN_2022_PROGRAM_ID
+      );
       const decimal = mintInfo.decimals;
       const transaction = new Transaction().add(
         createMintToInstruction(
@@ -50,21 +64,27 @@ const MintCard = () => {
       );
 
       transaction.feePayer = wallet.publicKey!;
-      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+      transaction.recentBlockhash = (
+        await connection.getLatestBlockhash()
+      ).blockhash;
 
       const signature = await wallet.sendTransaction(transaction, connection);
       await connection.confirmTransaction(signature, "confirmed");
 
-      setSuccessMessage(`Minted ${amount} tokens to ${associatedTokenAccount.toBase58()}`);
+      setSuccessMessage(
+        `Minted ${amount} tokens to ${associatedTokenAccount.toBase58()}`
+      );
     } catch (error) {
-      setErrorMessage((error as Error).message || "An unexpected error occurred");
+      setErrorMessage(
+        (error as Error).message || "An unexpected error occurred"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-start mt-6 justify-center p-4 sm:p-6 md:p-8 min-h-screen">
+    <div className="flex items-start mt-6 justify-center p-4 sm:p-6 md:p-8 min-h-[700px]">
       <div className="w-full max-w-[90%] md:max-w-[70%] lg:max-w-[50%] transform transition-all duration-500 ease-in-out">
         <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
           <div className="p-4 sm:p-6 md:p-8">
@@ -90,19 +110,27 @@ const MintCard = () => {
                 onChange={setMintAmount}
                 type="number"
               />
-              
+
               {/* Error and Success Messages */}
               <div className="space-y-2">
                 {errorMessage && (
                   <div className="flex flex-col sm:flex-row mt-2 gap-1 sm:gap-x-1">
-                    <span className="text-sm sm:text-md font-bold text-white">Error: </span>
-                    <p className="text-white text-sm sm:text-md font-bold break-words">{errorMessage}</p>
+                    <span className="text-sm sm:text-md font-bold text-white">
+                      Error:{" "}
+                    </span>
+                    <p className="text-white text-sm sm:text-md font-bold break-words">
+                      {errorMessage}
+                    </p>
                   </div>
                 )}
                 {successMessage && (
                   <div className="flex flex-col sm:flex-row mt-2 gap-1 sm:gap-x-2">
-                    <span className="text-sm sm:text-md font-bold text-white">Success: </span>
-                    <p className="text-white text-sm sm:text-md font-bold break-words">{successMessage}</p>
+                    <span className="text-sm sm:text-md font-bold text-white">
+                      Success:{" "}
+                    </span>
+                    <p className="text-white text-sm sm:text-md font-bold break-words">
+                      {successMessage}
+                    </p>
                   </div>
                 )}
               </div>

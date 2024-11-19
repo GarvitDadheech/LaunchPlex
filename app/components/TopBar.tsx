@@ -1,22 +1,22 @@
-import React from 'react';
+import React from "react";
 import { FC } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { Coins, Stamp, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { Coins, Stamp, Menu } from "lucide-react";
+import { useState } from "react";
 
 interface TopBarProps {
   currentNetwork: WalletAdapterNetwork;
   onNetworkChange: (network: WalletAdapterNetwork) => void;
-  onPageChange: (page: 'create' | 'mint') => void;
-  currentPage: 'create' | 'mint';
+  onPageChange: (page: "create" | "mint") => void;
+  currentPage: "create" | "mint";
 }
 
-const TopBar: FC<TopBarProps> = ({ 
-  currentNetwork, 
-  onNetworkChange, 
+const TopBar: FC<TopBarProps> = ({
+  currentNetwork,
+  onNetworkChange,
   onPageChange,
-  currentPage 
+  currentPage,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -35,7 +35,7 @@ const TopBar: FC<TopBarProps> = ({
             </div>
 
             {/* Mobile Menu Button */}
-            <button 
+            <button
               className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
@@ -46,10 +46,10 @@ const TopBar: FC<TopBarProps> = ({
             <div className="hidden lg:flex items-center space-x-4">
               <div className="flex bg-black/30 rounded-lg p-1 backdrop-blur-sm">
                 <button
-                  onClick={() => onPageChange('create')}
+                  onClick={() => onPageChange("create")}
                   className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-300 flex items-center space-x-2
                             ${
-                              currentPage === 'create'
+                              currentPage === "create"
                                 ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
                                 : "text-blue-100 hover:text-white hover:bg-white/10"
                             }`}
@@ -58,10 +58,10 @@ const TopBar: FC<TopBarProps> = ({
                   <span>Create Token</span>
                 </button>
                 <button
-                  onClick={() => onPageChange('mint')}
+                  onClick={() => onPageChange("mint")}
                   className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-300 flex items-center space-x-2
                             ${
-                              currentPage === 'mint'
+                              currentPage === "mint"
                                 ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
                                 : "text-blue-100 hover:text-white hover:bg-white/10"
                             }`}
@@ -110,7 +110,8 @@ const TopBar: FC<TopBarProps> = ({
                   //@ts-ignore
                   onMouseOver={(e: any) => {
                     e.target.style.backgroundColor = "#7c3aed";
-                    e.target.style.boxShadow = "0 4px 6px rgba(128, 0, 128, 0.25)";
+                    e.target.style.boxShadow =
+                      "0 4px 6px rgba(128, 0, 128, 0.25)";
                     e.target.style.transform = "translateY(-0.125rem)";
                     e.target.style.filter = "brightness(1.1)";
                   }}
@@ -126,17 +127,17 @@ const TopBar: FC<TopBarProps> = ({
           </div>
 
           {/* Mobile Menu */}
-          <div className={`lg:hidden ${isMenuOpen ? 'block' : 'hidden'} pb-4`}>
+          <div className={`lg:hidden ${isMenuOpen ? "block" : "hidden"} pb-4`}>
             <div className="space-y-4">
               <div className="flex  space-x-2">
                 <button
                   onClick={() => {
-                    onPageChange('create');
+                    onPageChange("create");
                     setIsMenuOpen(false);
                   }}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center space-x-2
                             ${
-                              currentPage === 'create'
+                              currentPage === "create"
                                 ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
                                 : "text-blue-100 hover:text-white hover:bg-white/10"
                             }`}
@@ -146,12 +147,12 @@ const TopBar: FC<TopBarProps> = ({
                 </button>
                 <button
                   onClick={() => {
-                    onPageChange('mint');
+                    onPageChange("mint");
                     setIsMenuOpen(false);
                   }}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center space-x-2
                             ${
-                              currentPage === 'mint'
+                              currentPage === "mint"
                                 ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
                                 : "text-blue-100 hover:text-white hover:bg-white/10"
                             }`}
