@@ -188,22 +188,26 @@ const TokenCard = () => {
   };
 
   return (
-    <div className="relative">
-      <div className="flex items-center justify-center px-8 py-6 h-full">
-        <div className="w-[50%] transform transition-all duration-500 ease-in-out">
+    <div className="relative min-h-screen">
+      <div className="flex items-center justify-center px-4 sm:px-6 md:px-8 py-6 h-full">
+        <div className="w-full md:w-[80%] lg:w-[70%] xl:w-[50%] transform transition-all duration-500 ease-in-out">
           <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
-            <div className="p-6 sm:p-8">
-              <div className="mb-8">
-                <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-200 to-white bg-clip-text text-transparent">
+            <div className="p-4 sm:p-6 md:p-8">
+              {/* Header Section */}
+              <div className="mb-6 md:mb-8">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-200 to-white bg-clip-text text-transparent">
                   Create Your Sol Token
                 </h2>
-                <p className="mt-2 text-gray-200">
+                <p className="mt-2 text-sm sm:text-base text-gray-200">
                   Fill in the details below to launch your own Solana token
                 </p>
               </div>
-              <div className="space-y-5">
-                <div className="flex space-x-4">
-                  <div className="flex-1">
+
+              {/* Form Section */}
+              <div className="space-y-4 sm:space-y-5">
+                {/* Name and Symbol */}
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                  <div className="w-full sm:flex-1">
                     <InputBox
                       heading="Token Name"
                       placeholder="Enter the name of your token"
@@ -211,7 +215,7 @@ const TokenCard = () => {
                       onChange={setTokenName}
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="w-full sm:flex-1">
                     <InputBox
                       heading="Token Symbol"
                       placeholder="Enter the symbol of your token"
@@ -220,14 +224,18 @@ const TokenCard = () => {
                     />
                   </div>
                 </div>
+
+                {/* Description */}
                 <InputBox
                   heading="Token Description"
                   placeholder="Enter a description for your token"
                   value={tokenDescription}
                   onChange={setTokenDescription}
                 />
-                <div className="flex space-x-4">
-                  <div className="flex-1">
+
+                {/* Decimal and Supply */}
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                  <div className="w-full sm:flex-1">
                     <InputBox
                       heading="Decimal"
                       placeholder="Enter the decimals you want in the token"
@@ -236,7 +244,7 @@ const TokenCard = () => {
                       type="number"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="w-full sm:flex-1">
                     <InputBox
                       heading="Initial Supply"
                       placeholder="Enter the initial supply of your token"
@@ -246,16 +254,21 @@ const TokenCard = () => {
                     />
                   </div>
                 </div>
+
+                {/* Token Image */}
                 <InputBox
                   heading="Token Image"
                   placeholder="Enter the URI link of token image"
                   value={tokenImage}
                   onChange={setTokenImage}
                 />
-                <div className="flex space-x-4">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center space-x-4">
-                      <h3 className="font-medium text-white">
+
+                {/* Authority Controls */}
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                  {/* Mint Authority */}
+                  <div className="w-full sm:flex-1 space-y-2">
+                    <div className="flex items-center justify-between sm:space-x-4">
+                      <h3 className="font-medium text-white text-sm sm:text-base">
                         Revoke Mint Authority
                       </h3>
                       <button
@@ -271,19 +284,19 @@ const TokenCard = () => {
                         />
                       </button>
                     </div>
-                    <p className="text-sm text-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-200">
                       Prevent additional token supply
                     </p>
                   </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center space-x-4">
-                      <h3 className="font-medium text-white">
+
+                  {/* Freeze Authority */}
+                  <div className="w-full sm:flex-1 space-y-2">
+                    <div className="flex items-center justify-between sm:space-x-4">
+                      <h3 className="font-medium text-white text-sm sm:text-base">
                         Revoke Freeze Authority
                       </h3>
                       <button
-                        onClick={() =>
-                          setRevokeFreezeAuthority(!revokeFreezeAuthority)
-                        }
+                        onClick={() => setRevokeFreezeAuthority(!revokeFreezeAuthority)}
                         className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                           revokeFreezeAuthority ? "bg-purple-500" : "bg-gray-600"
                         }`}
@@ -295,16 +308,18 @@ const TokenCard = () => {
                         />
                       </button>
                     </div>
-                    <p className="text-sm text-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-200">
                       Prevent freezing of token accounts
                     </p>
                   </div>
                 </div>
+
+                {/* Launch Button */}
                 <div className="flex gap-4 pt-4">
                   <button
                     onClick={createToken}
                     disabled={isLoading}
-                    className="px-4 py-3 rounded-lg w-[30%] bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg hover:shadow-purple-500/25 disabled:opacity-70 transform hover:-translate-y-0.5 transition-all duration-300 disabled:hover:transform-none flex items-center justify-center font-semibold"
+                    className="px-4 py-3 rounded-lg w-full sm:w-[30%] bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg hover:shadow-purple-500/25 disabled:opacity-70 transform hover:-translate-y-0.5 transition-all duration-300 disabled:hover:transform-none flex items-center justify-center font-semibold"
                   >
                     {isLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -318,6 +333,8 @@ const TokenCard = () => {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
       {showSuccessModal && (
         <TokenSuccessModal
           mintAddress={createdTokenAddress}

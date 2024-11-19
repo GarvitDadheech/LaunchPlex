@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { createMintToInstruction, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID,getMint } from "@solana/spl-token";
+import { createMintToInstruction, getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, getMint } from "@solana/spl-token";
 import InputBox from "./InputBox";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
@@ -64,19 +64,19 @@ const MintCard = () => {
   };
 
   return (
-    <div className="flex items-center justify-center px-8 py-8 h-full">
-      <div className="w-[50%] transform transition-all duration-500 ease-in-out">
+    <div className="flex items-start mt-6 justify-center p-4 sm:p-6 md:p-8 min-h-screen">
+      <div className="w-full max-w-[90%] md:max-w-[70%] lg:max-w-[50%] transform transition-all duration-500 ease-in-out">
         <div className="bg-white/10 rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl">
-          <div className="p-6 sm:p-8">
-            <div className="mb-8">
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-200 to-white bg-clip-text text-transparent">
+          <div className="p-4 sm:p-6 md:p-8">
+            <div className="mb-6 md:mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-200 to-white bg-clip-text text-transparent">
                 Mint Your Sol Token
               </h2>
-              <p className="mt-2 text-gray-200">
+              <p className="mt-2 text-sm sm:text-base text-gray-200">
                 Enter the token address and amount to mint your Solana tokens.
               </p>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <InputBox
                 heading="Token Address"
                 placeholder="Enter the address of your token"
@@ -90,32 +90,40 @@ const MintCard = () => {
                 onChange={setMintAmount}
                 type="number"
               />
-              {errorMessage && (
-                <div className="flex mt-2 gap-x-1">
-                  <span className="text-md font-bold text-white">Error: </span>
-                  <p className="text-white text-md font-bold">{errorMessage}</p>
-                </div>
-              )}
-              {successMessage && (
-                <div className="flex  mt-2 gap-x-2">
-                  <span className="text-md font-bold text-white">Success: </span>
-                  <p className="text-white text-md font-bold">{successMessage}</p>
-                </div>
-              )}
+              
+              {/* Error and Success Messages */}
+              <div className="space-y-2">
+                {errorMessage && (
+                  <div className="flex flex-col sm:flex-row mt-2 gap-1 sm:gap-x-1">
+                    <span className="text-sm sm:text-md font-bold text-white">Error: </span>
+                    <p className="text-white text-sm sm:text-md font-bold break-words">{errorMessage}</p>
+                  </div>
+                )}
+                {successMessage && (
+                  <div className="flex flex-col sm:flex-row mt-2 gap-1 sm:gap-x-2">
+                    <span className="text-sm sm:text-md font-bold text-white">Success: </span>
+                    <p className="text-white text-sm sm:text-md font-bold break-words">{successMessage}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Mint Button */}
               <div className="flex items-center">
                 <button
                   onClick={mintToken}
                   disabled={isLoading}
-                  className="px-4 py-3 rounded-lg w-[30%]
-                                             bg-gradient-to-r from-purple-500 to-blue-500
-                                             text-white shadow-lg 
-                                             hover:shadow-purple-500/25 disabled:opacity-70
-                                             transform hover:-translate-y-0.5 transition-all 
-                                             duration-300 disabled:hover:transform-none
-                                             flex items-center justify-center font-semibold"
+                  className="w-full sm:w-auto px-4 py-3 rounded-lg
+                           bg-gradient-to-r from-purple-500 to-blue-500
+                           text-white shadow-lg 
+                           hover:shadow-purple-500/25 disabled:opacity-70
+                           transform hover:-translate-y-0.5 transition-all 
+                           duration-300 disabled:hover:transform-none
+                           flex items-center justify-center font-semibold
+                           text-sm sm:text-base
+                           min-w-[120px] sm:min-w-[140px]"
                 >
                   {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                   ) : (
                     "Mint Token"
                   )}
