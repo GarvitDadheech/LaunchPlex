@@ -4,11 +4,11 @@ import { Github, Twitter } from "lucide-react";
 
 const BottomBar: FC = () => {
   return (
-    <div className="z-50">
+    <div className="z-50 mt-5">
       <div className="backdrop-blur-md bg-black/20 border-t border-white/10 shadow-2xl">
         <div className="px-4 md:px-8 lg:px-32 mx-auto">
           <div className="flex items-center justify-between h-16">
-            {/* Copyright */}
+
             <div className="text-sm text-blue-100 flex items-center space-x-1">
               <span>Made with ❤️ by</span>
               <a 

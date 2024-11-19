@@ -21,7 +21,7 @@ const TopBar: FC<TopBarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
+    <div className="fixed top-0 left-0 right-0 z-50 ">
       <div className="backdrop-blur-md bg-black/20 border-b border-white/10 shadow-2xl">
         <div className="px-4 md:px-8 lg:px-32 mx-auto">
           <div className="flex items-center justify-between h-20">
